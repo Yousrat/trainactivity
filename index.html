@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Train Schedule</title>
+
+	<!-- jQuery CDN links. -->
+	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+
+	<!-- <meta name="viewport" content="width=device-width, initial-scale=1"> -->
+
+	<!-- Bootstrap CDN links. -->
+  	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+	<!-- moment.js -->
+  	<script src="https://cdn.jsdelivr.net/momentjs/2.12.0/moment.min.js"></script>
+</head>
+<body>
+
+<div class="container">
+		<div class="row">
+			<div class="jumbotron text-center">
+			    <h1> Anytime is Train Time</h1>
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="panel panel-warning">		 
+			  <div class="panel-heading">Current Train Schedule</div>
+			  <div class="panel-body">
+				  <table class="table table-hover">
+				    <thead>
+				      <tr>
+				        <th>Train Name</th>
+				        <th>Destination</th>
+				        <th>Frequency(min)</th>
+				        <th>Next Arrival</th>
+				        <th>Minutes Away</th>
+				      </tr>
+				    </thead>
+				   
+				  </table>
+				</div>
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="panel panel-info">		 
+				<div class="panel-heading">Add Train</div>
+				<div class="panel-body">
+					<form>
+					  <div class="form-group">
+					    <label for="trn-name">Train Name</label>
+					    <input type="text" class="form-control" id="trn-name" placeholder="Name">
+					  </div>
+					  <div class="form-group">
+					    <label for="dst">Train Destination</label>
+					    <input type="text" class="form-control" id="dst" placeholder="dstination">
+					  </div>
+					  <div class="form-group">
+					    <label for="start-date">First Train Time (HH:mm - military time)</label>
+					    <input type="text" class="form-control" id="start-date" placeholder="DD/MM/YY">
+					  </div>
+					   <div class="form-group">
+					    <label for="freq">Frequency (min)</label>
+					    <input type="text" class="form-control" id="freq" placeholder="Frequency">
+					  </div>				  
+					  <button type="submit" id="submit" class="btn btn-default">Submit</button>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+
+<script type="text/javascript">
+$("#submit").on("click", function(event){
+		// to stop the submit button from refreshing the page and losing all data
+		event.preventDefault();
+
+		var empName = $("#emp-name").val().trim();
+		var empRole = $("#emp-role").val().trim();
+		var startDate = $("#start-date").val().trim();
+		var monthlyRate = parseInt($("#monthly-rate").val().trim());
+		var monthWork = 0;
+		var totalBill = 0;
+
+		var newRow = $("<tr>")
+			.append($("<td>").html(empName))
+			.append($("<td>").html(empRole))
+			.append($("<td>").html(startDate))
+			.append($("<td>").html(monthWork))
+			.append($("<td>").html(monthlyRate))
+			.append($("<td>").html(totalBill));
+
+		$("tbody").append(newRow);
+		console.log(empName,empRole,startDate,monthlyRate);
+	});
+</script>
+</body>
+</html>
