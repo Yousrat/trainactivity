@@ -6,10 +6,11 @@
 	<!-- jQuery CDN links. -->
 	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 
-	<!-- <meta name="viewport" content="width=device-width, initial-scale=1"> -->
-
 	<!-- Bootstrap CDN links. -->
   	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+	<!-- Firebase Reference -->
+    <script src="https://www.gstatic.com/firebasejs/3.7.0/firebase.js"></script>
 
 	<!-- moment.js -->
   	<script src="https://cdn.jsdelivr.net/momentjs/2.12.0/moment.min.js"></script>
@@ -27,7 +28,7 @@
 			<div class="panel panel-warning">		 
 			  <div class="panel-heading">Current Train Schedule</div>
 			  <div class="panel-body">
-				  <table class="table table-hover">
+				  <table class="table table-hover" id="train-table">
 				    <thead>
 				      <tr>
 				        <th>Train Name</th>
@@ -37,7 +38,8 @@
 				        <th>Minutes Away</th>
 				      </tr>
 				    </thead>
-				   
+				 <tbody>
+				 </tbody>  
 				  </table>
 				</div>
 			</div>
@@ -50,20 +52,21 @@
 					<form>
 					  <div class="form-group">
 					    <label for="trn-name">Train Name</label>
-					    <input type="text" class="form-control" id="trn-name" placeholder="Name">
+					    <input type="text" class="form-control" id="trn-name" placeholder="Train Name">
 					  </div>
 					  <div class="form-group">
 					    <label for="dst">Train Destination</label>
-					    <input type="text" class="form-control" id="dst" placeholder="dstination">
+					    <input type="text" class="form-control" id="dst" placeholder="Destination">
 					  </div>
 					  <div class="form-group">
-					    <label for="start-date">First Train Time (HH:mm - military time)</label>
-					    <input type="text" class="form-control" id="start-date" placeholder="DD/MM/YY">
+					    <label for="start-time">First Train Time (HH:mm - military time)</label>
+					    <input type="text" class="form-control" id="start-time" placeholder="HH:MM">
 					  </div>
 					   <div class="form-group">
 					    <label for="freq">Frequency (min)</label>
 					    <input type="text" class="form-control" id="freq" placeholder="Frequency">
-					  </div>				  
+					  </div>	
+
 					  <button type="submit" id="submit" class="btn btn-default">Submit</button>
 					</form>
 				</div>
@@ -71,31 +74,144 @@
 		</div>
 	</div>
 
+	<script type="text/javascript">
+//define global variables passed between the functions
+var nextArrTime;
+var minutesAway;
+
+// calculate the missing fields
+function calculateData(firstArr,freq){
+	
+	var currentTime = moment().format("HH:mm");
+	console.log("current time: " +currentTime);
+
+	var firstArr = moment(firstArr, "hh:mm").subtract(1, "years");
+    console.log("first arrival hh:mm " +firstArr);
+
+	// Difference between the times
+    var diffTime = moment().diff(moment(firstArr), "minutes");
+    console.log("DIFFERENCE IN TIME: " + diffTime);
+
+	// Time apart (remainder)
+    var tRemainder = diffTime % freq;
+    console.log("mod : " +tRemainder);
+
+    // Minute Until Train
+    minutesAway = freq - tRemainder;
+    console.log("MINUTES TILL TRAIN: " + minutesAway);
+
+    // Next Train
+    var tArrTime = moment().add(minutesAway, "minutes");
+ nextArrTime = moment(tArrTime).format("hh:mm");
+
+    console.log("ARRIVAL TIME: " + nextArrTime);
+    
+    return(nextArrTime,minutesAway);
+    console.log(nextArrTime,minutesAway);
+}
+
+// Initialize Firebase
+  var config = {
+    apiKey: "AIzaSyCln0cYYdGE4P0oOYEmoU5mFzHAngkj3hI",
+    authDomain: "trainactivity.firebaseapp.com",
+    databaseURL: "https://trainactivity.firebaseio.com",
+    storageBucket: "trainactivity.appspot.com",
+    messagingSenderId: "776424915333"
+  };
+  firebase.initializeApp(config);
+  var data = firebase.database();
+
+data.ref().on("child_added", function(childSnapshot, prevChildKey) {
+
+  console.log(childSnapshot.val());
+
+  // Store everything into a variable.
+  var tName = childSnapshot.val().name;
+  var Dstntion = childSnapshot.val().direction;
+  var tStartTime = childSnapshot.val().FirstDeparture;
+  var tFrequency = childSnapshot.val().freq;
+  var tArr = childSnapshot.val().nextArrival;
+  var tMinutes = childSnapshot.val().tminutesAway;
+
+  // Employee Info
+  console.log("tname: " + tName);
+  console.log("Dstntion: " + Dstntion);
+  console.log("tStartTime: " + tStartTime);
+  console.log("tFrequency: " + tFrequency);
+  console.log("tArr: " + tArr);
+  console.log("tMinutes: " + tMinutes);
+
+ 
+
+  // Add each train's data into the table
+  $("#train-table > tbody").append("<tr><td>" + tName + "</td><td>" + Dstntion + "</td><td>" + tFrequency + "</td><td>" + tArr + "</td><td>" + tMinutes + "</td></tr>");
+});
 
 
-<script type="text/javascript">
+
+// //when loading the page populate data from the database into the table
+data.ref().on("child_added", function(childSnapshot, prevChildKey) {
+
+  console.log(childSnapshot.val());
+
+  // Store everything into a variable.
+  
+});
+
+
+
+
 $("#submit").on("click", function(event){
-		// to stop the submit button from refreshing the page and losing all data
-		event.preventDefault();
+  event.preventDefault();
 
-		var empName = $("#emp-name").val().trim();
-		var empRole = $("#emp-role").val().trim();
-		var startDate = $("#start-date").val().trim();
-		var monthlyRate = parseInt($("#monthly-rate").val().trim());
-		var monthWork = 0;
-		var totalBill = 0;
+// collect input data from the user
+		var trainName = $("#trn-name").val().trim();
+		var destination = $("#dst").val().trim();
+		var startTime = $("#start-time").val().trim();
+		var frequency = parseInt($("#freq").val().trim());
+		 calculateData(startTime,frequency);
+		// console.log("nextarrv" + nextArrTime);
+		// console.log("minaway" + minutesAwayInMin);
 
-		var newRow = $("<tr>")
-			.append($("<td>").html(empName))
-			.append($("<td>").html(empRole))
-			.append($("<td>").html(startDate))
-			.append($("<td>").html(monthWork))
-			.append($("<td>").html(monthlyRate))
-			.append($("<td>").html(totalBill));
+  // Creates local "temporary" object for holding train schedule
+  var newTrain = {
+    name: trainName,
+    direction: destination,
+    freq: frequency,
+    FirstDeparture: startTime,
+    nextArrival: nextArrTime,
+    tminutesAway: minutesAway
+  };
 
-		$("tbody").append(newRow);
-		console.log(empName,empRole,startDate,monthlyRate);
-	});
-</script>
+  // Uploads employee data to the database
+  data.ref().push(newTrain);
+
+  // Logs everything to console
+  console.log(newTrain.name);
+  console.log(newTrain.direction);
+  console.log(newTrain.freq);
+  console.log(newTrain.nextArrival);
+  console.log(newTrain.minutesAway);
+  
+  // Clear all of text-boxes
+  $("#trn-name").val("");
+  $("#dst").val("");
+  $("#start-time").val("");
+  $("#freq").val("");
+
+
+// var newRow = $("<tr>")
+// 			.append($("<td>").html(trainName))
+// 			.append($("<td>").html(destination))
+// 			.append($("<td>").html(frequency))
+// 			.append($("<td>").html(nextArrTime))
+// 			.append($("<td>").html(minutesAway));
+
+// 	// add a raw to the table form the user input
+// 		$("tbody").append(newRow);
+});
+
+
+	</script>
 </body>
 </html>
